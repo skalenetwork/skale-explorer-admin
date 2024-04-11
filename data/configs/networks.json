@@ -21,5 +21,11 @@
 		"url": "https://eth.blockscout.com/",
 		"group": "Mainnets",
 		"icon": "https://raw.githubusercontent.com/skalenetwork/skale-network/master/metadata/mainnet/icons/green-giddy-denebola.svg"
+	},
+	{
+		"title": "Nebula Gaming Hub",
+		"url": "https://eth.blockscout.com/",
+		"group": "Testnets",
+		"icon": "https://raw.githubusercontent.com/skalenetwork/skale-network/master/metadata/mainnet/icons/green-giddy-denebola.svg"
 	}
 ]
