@@ -49,8 +49,8 @@ def find_sequential_free_ports(count=5):
     :return: A list of `count` sequential free ports if found, otherwise None.
     """
     sockets = []
-    base_port = 10000
-    last_port = 50000
+    base_port = 10001
+    last_port = 50001
 
     while base_port < last_port - count + 1:
         success = True
@@ -64,7 +64,7 @@ def find_sequential_free_ports(count=5):
                 for s in sockets:
                     s.close()
                 sockets = []
-                base_port += offset + 1
+                base_port += offset + 10
                 break
 
         if success:
