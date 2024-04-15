@@ -36,7 +36,7 @@ def read_env_file(path):
 
 
 def write_json_into_env(path, data):
-    with open(path, 'w') as file:
+    with open(path, 'w+') as file:
         for key, value in data.items():
             file.write(f"{key}={value}\n")
 
@@ -49,7 +49,7 @@ def find_sequential_free_ports(count=5):
     :return: A list of `count` sequential free ports if found, otherwise None.
     """
     sockets = []
-    base_port = 1024
+    base_port = 10000
     last_port = 50000
 
     while base_port < last_port - count + 1:

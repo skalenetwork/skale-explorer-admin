@@ -22,7 +22,7 @@ def is_explorer_found(schain_name):
 
 
 def is_explorer_running(schain_name):
-    container_name = f'{schain_name}_proxy'
+    container_name = f'{schain_name}_backend'
     return get_info(container_name) == RUNNING_STATUS
 
 
