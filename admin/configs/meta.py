@@ -1,7 +1,8 @@
 import logging
+import os
 
-from admin import EXPLORERS_META_DATA_PATH
-from admin.utils.helper import read_json, write_json
+from admin import EXPLORERS_META_DATA_PATH, ENVS_DIR_PATH
+from admin.utils.helper import read_json, write_json, read_env_file
 
 logger = logging.getLogger(__name__)
 
@@ -11,12 +12,6 @@ def create_meta_file():
         'explorers': {}
     }
     write_json(EXPLORERS_META_DATA_PATH, empty_data)
-
-
-def is_schain_upgraded(schain_name):
-    schain_meta = get_schain_meta(schain_name)
-    if not schain_meta or schain_meta.get('updated'):
-        return True
 
 
 def verified_contracts(schain_name):
@@ -53,17 +48,17 @@ def update_meta_data(schain_name, proxy_port, db_port, stats_port,
 
 
 def get_schain_endpoint(schain_name):
-    return get_schain_meta(schain_name)['endpoint']
+    return get_schain_meta(schain_name)['ENDPOINT']
 
 
 def get_explorer_endpoint(schain_name):
-    explorer_port = get_schain_meta(schain_name)['proxy_port']
+    explorer_port = get_schain_meta(schain_name)['PROXY_PORT']
     return f'http://127.0.0.1:{explorer_port}'
 
 
 def get_schain_meta(schain_name):
-    data = get_explorers_meta()
-    return data.get(schain_name)
+    env_file_path = os.path.join(ENVS_DIR_PATH, f'{schain_name}.env')
+    return read_env_file(env_file_path)
 
 
 def set_chain_verified(schain_name):
