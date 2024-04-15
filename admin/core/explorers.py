@@ -3,7 +3,7 @@ import os
 import subprocess
 
 from admin import (DOCKER_COMPOSE_CONFIG_PATH, DOCKER_COMPOSE_BIN_PATH,
-                   COMPOSE_HTTP_TIMEOUT, BLOCKSCOUT_DATA_DIR)
+                   COMPOSE_HTTP_TIMEOUT, BLOCKSCOUT_DATA_DIR, HOST_DIR_PATH, HOST_ENV_DIR_PATH)
 from admin.configs.meta import (update_meta_data, get_schain_meta, get_explorers_meta,
                                 set_schain_upgraded, is_schain_upgraded, verified_contracts)
 from admin.configs.nginx import regenerate_nginx_config
@@ -13,52 +13,58 @@ from admin.core.containers import (get_free_port, restart_nginx,
 from admin.core.endpoints import is_dkg_passed, get_schain_endpoint, get_first_block, get_chain_id
 from admin.core.verify import verify
 from admin.migrations.revert_reasons import upgrade
+from admin.utils.helper import find_sequential_free_ports, write_json_into_env
 
 logger = logging.getLogger(__name__)
 
 
-def run_explorer(schain_name, chain_id, endpoint, ws_endpoint):
-    schain_meta = get_schain_meta(schain_name)
-    proxy_port = schain_meta['proxy_port'] if schain_meta else get_free_port()
-    db_port = schain_meta['db_port'] if schain_meta else get_free_port()
-    stats_port = schain_meta['stats_port'] if schain_meta else get_free_port()
-    stats_db_port = schain_meta['stats_db_port'] if schain_meta else get_free_port()
-    scv_port = schain_meta['scv_port'] if schain_meta else get_free_port()
-    first_block = schain_meta['first_block'] if schain_meta else get_first_block(schain_name)
-    config_host_path = generate_config(schain_name)
-    blockscout_data_dir = f'{BLOCKSCOUT_DATA_DIR}/{schain_name}'
-    env = {
-        'SCHAIN_NAME': schain_name,
-        'CHAIN_ID': str(chain_id),
-        'PROXY_PORT': str(proxy_port),
-        'DB_PORT': str(db_port),
-        'STATS_PORT': str(stats_port),
-        'STATS_DB_PORT': str(stats_db_port),
-        'SC_VERIFIER_PORT': str(scv_port),
-        'ENDPOINT': endpoint,
-        'WS_ENDPOINT': ws_endpoint,
-        'CONFIG_PATH': config_host_path,
-        'COMPOSE_PROJECT_NAME': schain_name,
-        'COMPOSE_HTTP_TIMEOUT': str(COMPOSE_HTTP_TIMEOUT),
-        'FIRST_BLOCK': str(first_block),
-        'SCHAIN_DATA_DIR': blockscout_data_dir
-    }
-    logger.info(f'Running explorer with {env}')
+def run_explorer(schain_name):
+    env_file_path = os.path.join(HOST_ENV_DIR_PATH, f'{schain_name}.env')
+    if not os.path.exists(env_file_path):
+        env_data = generate_blockscout_env(schain_name)
+        write_json_into_env(env_file_path, env_data)
+        logger.info(f'Env for {schain_name} is generated: {env_file_path}')
     command = [
         DOCKER_COMPOSE_BIN_PATH,
         'compose',
         '-f',
         DOCKER_COMPOSE_CONFIG_PATH,
+        '--env-file',
+        env_file_path,
         'up',
         '-d',
         '--build'
     ]
-    subprocess.run(command, env={**env, **os.environ})
-    update_meta_data(schain_name, proxy_port, db_port, stats_port,
-                     stats_db_port, scv_port, endpoint, ws_endpoint, first_block)
+    subprocess.run(command, env={**os.environ})
     regenerate_nginx_config()
     restart_nginx()
     logger.info(f'sChain explorer is running on {schain_name}. subdomain')
+
+
+def generate_blockscout_env(schain_name):
+    base_port = find_sequential_free_ports(5)
+    config_host_path = generate_config(schain_name)
+    blockscout_data_dir = f'{BLOCKSCOUT_DATA_DIR}/{schain_name}'
+    ports_env = {
+        'PROXY_PORT': str(base_port),
+        'DB_PORT': str(base_port + 1),
+        'STATS_PORT': str(base_port + 2),
+        'STATS_DB_PORT': str(base_port + 3),
+    }
+    schain_env = {
+        'SCHAIN_NAME': schain_name,
+        'SCHAIN_APP_NAME': schain_name,
+        'CHAIN_ID': str(get_chain_id(schain_name)),
+        'ENDPOINT': get_schain_endpoint(schain_name),
+        'WS_ENDPOINT': get_schain_endpoint(schain_name, ws=True),
+        'SCHAIN_DATA_DIR': blockscout_data_dir,
+        'CONFIG_PATH': config_host_path,
+    }
+    return {
+        'COMPOSE_PROJECT_NAME': schain_name,
+        **ports_env,
+        **schain_env
+    }
 
 
 def run_explorer_for_schain(schain_name):
@@ -71,7 +77,7 @@ def run_explorer_for_schain(schain_name):
         ws_endpoint = get_schain_endpoint(schain_name, ws=True)
     chain_id = get_chain_id(schain_name)
     if endpoint and ws_endpoint:
-        run_explorer(schain_name, chain_id, endpoint, ws_endpoint)
+        run_explorer(schain_name)
     else:
         logger.warning(f"Couldn't create blockexplorer instance for {schain_name}")
 
