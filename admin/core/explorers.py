@@ -50,7 +50,8 @@ def run_explorer(schain_name, chain_id, endpoint, ws_endpoint):
         '-f',
         DOCKER_COMPOSE_CONFIG_PATH,
         'up',
-        '-d'
+        '-d',
+        '--build'
     ]
     subprocess.run(command, env={**env, **os.environ})
     update_meta_data(schain_name, proxy_port, db_port, stats_port,
