@@ -25,7 +25,7 @@ BLOCKSCOUT_DATA_DIR = os.path.join(HOST_DIR_PATH, 'data', 'blockscout-data') \
 BLOCKSCOUT_PROXY_CONFIG_DIR = os.path.join(HOST_DIR_PATH, 'deps', 'blockscout',
                                            'docker-compose', 'proxy') \
     if HOST_DIR_PATH else None
-BLOCKSCOUT_ASSETS_DIR = os.path.join(HOST_DIR_PATH, 'deps', 'blockscout', 'docker-compose',
+BLOCKSCOUT_ASSETS_DIR = os.path.join(HOST_DIR_PATH, 'deps', 'blockscout',
                                      'docker-compose', 'assets') \
     if HOST_DIR_PATH else None
 
