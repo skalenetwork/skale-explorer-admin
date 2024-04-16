@@ -6,7 +6,7 @@ import json
 
 from web3 import Web3
 
-from admin.configs.meta import get_explorer_endpoint, set_chain_verified
+from admin.configs.meta import get_explorer_endpoint
 from admin.configs.schains import get_schain_config, set_contract_verified
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,6 @@ def verify(schain_name):
             all_verified = False
     if all_verified:
         logger.info(f'All contracts are verified for {schain_name}')
-        set_chain_verified(schain_name)
 
 
 def verify_contract(schain_name, verifying_address, contract_meta):

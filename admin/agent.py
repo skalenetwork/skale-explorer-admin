@@ -4,8 +4,7 @@ from functools import wraps
 from threading import Thread
 from time import sleep
 
-from admin import EXPLORERS_META_DATA_PATH, ABI_FILEPATH
-from admin.configs.meta import (create_meta_file)
+from admin import ABI_FILEPATH
 from admin.core.endpoints import get_all_names
 from admin.core.explorers import check_explorer_for_schain
 from admin.utils.logger import init_logger
@@ -38,9 +37,6 @@ def check_explorer_status():
 
 def main():
     assert os.path.isfile(ABI_FILEPATH), "ABI not found"
-    if not os.path.isfile(EXPLORERS_META_DATA_PATH):
-        create_meta_file()
-
     Thread(target=check_explorer_status, daemon=True, name='explorers-checker').start()
     while True:
         sleep(1)
