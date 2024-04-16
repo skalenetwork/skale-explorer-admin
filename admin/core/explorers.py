@@ -1,6 +1,7 @@
 import logging
 import os
 import subprocess
+from time import sleep
 
 import requests
 
@@ -78,4 +79,5 @@ def check_explorer_for_schain(schain_name):
         return
     if not is_explorer_running(schain_name):
         run_explorer_for_schain(schain_name)
+        sleep(60)
         verify(schain_name)
