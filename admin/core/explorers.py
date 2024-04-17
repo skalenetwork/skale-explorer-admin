@@ -46,6 +46,8 @@ def generate_blockscout_env(schain_name):
     config_host_path = generate_config(schain_name)
     blockscout_data_dir = f'{BLOCKSCOUT_DATA_DIR}/{schain_name}'
     public_ip = requests.get('https://api.ipify.org').content.decode('utf8')
+    chains_metadata_url = 'https://raw.githubusercontent.com/skalenetwork/skale-network/master/metadata/mainnet/chains.json'
+    schain_app_name = requests.get(chains_metadata_url).json()[schain_name]['alias']
     network_env = {
         'PROXY_PORT': str(base_port),
         'DB_PORT': str(base_port + 1),
@@ -55,7 +57,7 @@ def generate_blockscout_env(schain_name):
     }
     schain_env = {
         'SCHAIN_NAME': schain_name,
-        'SCHAIN_APP_NAME': schain_name,
+        'SCHAIN_APP_NAME': schain_app_name,
         'CHAIN_ID': str(get_chain_id(schain_name)),
         'ENDPOINT': get_schain_endpoint(schain_name),
         'WS_ENDPOINT': get_schain_endpoint(schain_name, ws=True),
