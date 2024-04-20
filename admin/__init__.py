@@ -17,17 +17,15 @@ ENVS_DIR_PATH = os.path.join(SERVER_DATA_DIR, 'envs')
 
 
 HOST_DIR_PATH = os.environ.get('HOST_DIR_PATH')
-HOST_SCHAIN_CONFIG_DIR_PATH = os.path.join(HOST_DIR_PATH, 'data', 'configs') \
-    if HOST_DIR_PATH else None
-BLOCKSCOUT_DATA_DIR = os.path.join(HOST_DIR_PATH, 'data', 'blockscout-data') \
-    if HOST_DIR_PATH else None
-
-BLOCKSCOUT_PROXY_CONFIG_DIR = os.path.join(HOST_DIR_PATH, 'deps', 'blockscout',
-                                           'docker-compose', 'proxy') \
-    if HOST_DIR_PATH else None
-BLOCKSCOUT_ASSETS_DIR = os.path.join(HOST_DIR_PATH, 'deps', 'blockscout',
-                                     'docker-compose', 'assets') \
-    if HOST_DIR_PATH else None
+HOST_SCHAIN_CONFIG_DIR_PATH = os.path.join(HOST_DIR_PATH, 'data', 'configs')
+HOST_SSL_DIR_PATH = os.path.join(HOST_DIR_PATH, 'data', 'certs')
+BLOCKSCOUT_DATA_DIR = os.path.join(HOST_DIR_PATH, 'data', 'blockscout-data')
+BLOCKSCOUT_PROXY_CONFIG_DIR = os.path.join(HOST_DIR_PATH, 'deps', 'blockscout', 'docker-compose',
+                                           'proxy')
+BLOCKSCOUT_PROXY_SSL_CONFIG_DIR = os.path.join(HOST_DIR_PATH, 'deps', 'blockscout', 'docker-compose',
+                                               'proxy-ssl')
+BLOCKSCOUT_ASSETS_DIR = os.path.join(HOST_DIR_PATH, 'deps', 'blockscout', 'docker-compose',
+                                     'assets')
 
 
 NGINX_CONFIGS_DIR = os.path.join(SERVER_DATA_DIR, 'nginx')
@@ -39,6 +37,8 @@ ETH_API_KEY = os.environ.get('ETH_API_KEY')
 PROXY_DOMAIN_NAME = os.environ.get('PROXY_DOMAIN')
 SCHAIN_NAMES = os.environ.get('SCHAIN_NAMES')
 FROM_FIRST_BLOCK = True if os.environ.get('FROM_FIRST_BLOCK') else False
+SSL_ENABLED = os.environ.get('SSL_ENABLED')
+HOST_DOMAIN = os.environ.get('HOST_DOMAIN')
 
 SSL_DIR_PATH = os.path.join(SERVER_DATA_DIR, 'certs')
 SSL_CRT_PATH = os.path.join(SSL_DIR_PATH, 'server.crt')
@@ -55,7 +55,3 @@ ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 STATS_TIME_DELTA = 3600
 GAS_PRICE_REFRESHING_TIME = 86400
 COMPOSE_HTTP_TIMEOUT = 600
-
-FLASK_APP_PORT = os.environ.get('FLASK_APP_PORT')
-FLASK_APP_HOST = os.environ.get('FLASK_APP_HOST')
-FLASK_HOST_PORT = os.environ.get('FLASK_HOST_PORT')

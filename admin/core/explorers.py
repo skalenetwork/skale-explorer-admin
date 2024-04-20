@@ -6,7 +6,9 @@ from time import sleep
 import requests
 
 from admin import (DOCKER_COMPOSE_CONFIG_PATH, DOCKER_COMPOSE_BIN_PATH,
-                   BLOCKSCOUT_DATA_DIR, ENVS_DIR_PATH, BLOCKSCOUT_PROXY_CONFIG_DIR, BLOCKSCOUT_ASSETS_DIR)
+                   BLOCKSCOUT_DATA_DIR, ENVS_DIR_PATH, BLOCKSCOUT_PROXY_CONFIG_DIR,
+                   BLOCKSCOUT_ASSETS_DIR, SSL_ENABLED,
+                   HOST_DOMAIN, BLOCKSCOUT_PROXY_SSL_CONFIG_DIR, HOST_SSL_DIR_PATH)
 from admin.configs.nginx import regenerate_nginx_config
 from admin.configs.schains import generate_config
 from admin.core.containers import (restart_nginx,
@@ -45,15 +47,14 @@ def generate_blockscout_env(schain_name):
     base_port = find_sequential_free_ports(5)
     config_host_path = generate_config(schain_name)
     blockscout_data_dir = f'{BLOCKSCOUT_DATA_DIR}/{schain_name}'
-    public_ip = requests.get('https://api.ipify.org').content.decode('utf8')
-    chains_metadata_url = 'https://raw.githubusercontent.com/skalenetwork/skale-network/master/metadata/mainnet/chains.json'
+    chains_metadata_url = \
+        'https://raw.githubusercontent.com/skalenetwork/skale-network/master/metadata/mainnet/chains.json'
     schain_app_name = requests.get(chains_metadata_url).json()[schain_name]['alias']
-    network_env = {
+    ports_env = {
         'PROXY_PORT': str(base_port),
         'DB_PORT': str(base_port + 1),
         'STATS_PORT': str(base_port + 2),
         'STATS_DB_PORT': str(base_port + 3),
-        'HOST': str(public_ip),
     }
     schain_env = {
         'SCHAIN_NAME': schain_name,
@@ -64,16 +65,34 @@ def generate_blockscout_env(schain_name):
     }
     volumes_env = {
         'SCHAIN_DATA_DIR': blockscout_data_dir,
-        'BLOCKSCOUT_PROXY_CONFIG_DIR': BLOCKSCOUT_PROXY_CONFIG_DIR,
         'BLOCKSCOUT_ASSETS_DIR': BLOCKSCOUT_ASSETS_DIR,
         'CONFIG_PATH': config_host_path,
     }
+    if SSL_ENABLED:
+        network_env = {
+            'HOST': HOST_DOMAIN,
+            'PROXY_BASE_PORT': 443,
+            'NEXT_PUBLIC_API_WEBSOCKET_PROTOCOL': 'wss',
+            'NEXT_PUBLIC_API_PROTOCOL': 'https',
+            'STATS_PROTOCOL': 'https',
+            'NEXT_PUBLIC_APP_PROTOCOL': 'https',
+            'BLOCKSCOUT_PROXY_CERTS_PATH': HOST_SSL_DIR_PATH,
+            'BLOCKSCOUT_PROXY_SSL_CONFIG_DIR': BLOCKSCOUT_PROXY_SSL_CONFIG_DIR,
+        }
+    else:
+        public_ip = requests.get('https://api.ipify.org').content.decode('utf8')
+        network_env = {
+            'HOST': str(public_ip),
+            'BLOCKSCOUT_PROXY_CONFIG_DIR': BLOCKSCOUT_PROXY_CONFIG_DIR,
+        }
     return {
         'COMPOSE_PROJECT_NAME': schain_name,
-        **network_env,
+        **ports_env,
         **schain_env,
-        **volumes_env
+        **volumes_env,
+        **network_env
     }
+
 
 
 def check_explorer_for_schain(schain_name):
