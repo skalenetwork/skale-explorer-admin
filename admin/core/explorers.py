@@ -15,14 +15,14 @@ from admin.core.containers import (restart_nginx,
                                    is_explorer_running)
 from admin.core.endpoints import is_dkg_passed, get_schain_endpoint, get_chain_id
 from admin.core.verify import verify
-from admin.utils.helper import find_sequential_free_ports, write_json_into_env
+from admin.utils.helper import find_sequential_free_ports, write_json_into_env, read_env_file
 
 logger = logging.getLogger(__name__)
 
 
-def run_explorer_for_schain(schain_name):
+def run_explorer_for_schain(schain_name, update=False):
     env_file_path = os.path.join(ENVS_DIR_PATH, f'{schain_name}.env')
-    if not os.path.exists(env_file_path):
+    if not os.path.exists(env_file_path) or update:
         env_data = generate_blockscout_env(schain_name)
         write_json_into_env(env_file_path, env_data)
         logger.info(f'Env for {schain_name} is generated: {env_file_path}')
@@ -96,7 +96,6 @@ def generate_blockscout_env(schain_name):
         **volumes_env,
         **network_env
     }
-
 
 
 def check_explorer_for_schain(schain_name, update=False):
