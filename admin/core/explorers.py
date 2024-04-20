@@ -99,10 +99,10 @@ def generate_blockscout_env(schain_name):
 
 
 
-def check_explorer_for_schain(schain_name):
+def check_explorer_for_schain(schain_name, update=False):
     if not is_dkg_passed(schain_name):
         return
     if not is_explorer_running(schain_name):
-        run_explorer_for_schain(schain_name)
+        run_explorer_for_schain(schain_name, update)
         sleep(60)
         verify(schain_name)

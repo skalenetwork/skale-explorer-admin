@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 from functools import wraps
@@ -7,6 +8,7 @@ from time import sleep
 from admin import ABI_FILEPATH
 from admin.core.endpoints import get_all_names
 from admin.core.explorers import check_explorer_for_schain
+from admin.core.verify import verify
 from admin.utils.logger import init_logger
 
 logger = logging.getLogger(__name__)
@@ -35,11 +37,29 @@ def check_explorer_status():
         check_explorer_for_schain(schain_name)
 
 
+def verify_contracts():
+    schains = get_all_names()
+    for schain_name in schains:
+        verify(schain_name)
+
+
 def main():
     assert os.path.isfile(ABI_FILEPATH), "ABI not found"
-    Thread(target=check_explorer_status, daemon=True, name='explorers-checker').start()
-    while True:
-        sleep(1)
+
+    parser = argparse.ArgumentParser(description='Process some options.')
+
+    # Define optional arguments
+    parser.add_argument('--verify', action='store_true', help='Run the verification process')
+    parser.add_argument('--update', action='store_true', help='Run the update process')
+
+    # Parse arguments
+    args = parser.parse_args()
+    if args.verify:
+        logger.info("Verification process is running...")
+        verify_contracts()
+    else:
+        logger.info("Status check process is running...")
+        check_explorer_status()
 
 
 if __name__ == '__main__':
