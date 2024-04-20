@@ -39,6 +39,7 @@ SCHAIN_NAMES = os.environ.get('SCHAIN_NAMES')
 FROM_FIRST_BLOCK = True if os.environ.get('FROM_FIRST_BLOCK') else False
 SSL_ENABLED = os.environ.get('SSL_ENABLED')
 HOST_DOMAIN = os.environ.get('HOST_DOMAIN')
+IS_TESTNET = os.environ.get('IS_TESTNET')
 
 SSL_DIR_PATH = os.path.join(SERVER_DATA_DIR, 'certs')
 SSL_CRT_PATH = os.path.join(SSL_DIR_PATH, 'server.crt')
