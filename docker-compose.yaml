@@ -14,6 +14,7 @@ services:
       HOST_DIR_PATH: ${HOST_DIR_PATH}
       SSL_ENABLED: ${SSL_ENABLED:-true}
       IS_TESTNET: ${IS_TESTNET:-false}
+      WALLET_CONNECT_PROJECT_ID: ${WALLET_CONNECT_PROJECT_ID}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/skale-explorer/data

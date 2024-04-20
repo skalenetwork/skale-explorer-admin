@@ -8,7 +8,7 @@ import requests
 from admin import (DOCKER_COMPOSE_CONFIG_PATH, DOCKER_COMPOSE_BIN_PATH,
                    BLOCKSCOUT_DATA_DIR, ENVS_DIR_PATH, BLOCKSCOUT_PROXY_CONFIG_DIR,
                    BLOCKSCOUT_ASSETS_DIR, SSL_ENABLED,
-                   HOST_DOMAIN, BLOCKSCOUT_PROXY_SSL_CONFIG_DIR, HOST_SSL_DIR_PATH)
+                   HOST_DOMAIN, BLOCKSCOUT_PROXY_SSL_CONFIG_DIR, HOST_SSL_DIR_PATH, WALLET_CONNECT_PROJECT_ID)
 from admin.configs.nginx import regenerate_nginx_config
 from admin.configs.schains import generate_config
 from admin.core.containers import (restart_nginx,
@@ -63,6 +63,10 @@ def generate_blockscout_env(schain_name):
         'ENDPOINT': get_schain_endpoint(schain_name),
         'WS_ENDPOINT': get_schain_endpoint(schain_name, ws=True),
     }
+    if WALLET_CONNECT_PROJECT_ID:
+        schain_env.update({
+            'NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID': WALLET_CONNECT_PROJECT_ID
+        })
     volumes_env = {
         'SCHAIN_DATA_DIR': blockscout_data_dir,
         'BLOCKSCOUT_ASSETS_DIR': BLOCKSCOUT_ASSETS_DIR,
@@ -77,7 +81,7 @@ def generate_blockscout_env(schain_name):
             'STATS_PROTOCOL': 'https',
             'NEXT_PUBLIC_APP_PROTOCOL': 'https',
             'BLOCKSCOUT_PROXY_CERTS_PATH': HOST_SSL_DIR_PATH,
-            'BLOCKSCOUT_PROXY_SSL_CONFIG_DIR': BLOCKSCOUT_PROXY_SSL_CONFIG_DIR,
+            'BLOCKSCOUT_PROXY_CONFIG_DIR': BLOCKSCOUT_PROXY_SSL_CONFIG_DIR,
         }
     else:
         public_ip = requests.get('https://api.ipify.org').content.decode('utf8')
