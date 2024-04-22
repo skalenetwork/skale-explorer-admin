@@ -9,7 +9,7 @@ from admin import (DOCKER_COMPOSE_CONFIG_PATH, DOCKER_COMPOSE_BIN_PATH,
                    BLOCKSCOUT_DATA_DIR, ENVS_DIR_PATH, BLOCKSCOUT_PROXY_CONFIG_DIR,
                    BLOCKSCOUT_ASSETS_DIR, SSL_ENABLED,
                    HOST_DOMAIN, BLOCKSCOUT_PROXY_SSL_CONFIG_DIR, HOST_SSL_DIR_PATH,
-                   WALLET_CONNECT_PROJECT_ID, BLOCKSCOUT_TAG)
+                   WALLET_CONNECT_PROJECT_ID, BLOCKSCOUT_TAG, IS_TESTNET)
 from admin.configs.meta import get_explorer_endpoint
 from admin.configs.nginx import regenerate_nginx_config
 from admin.configs.schains import generate_config
@@ -65,8 +65,9 @@ def generate_blockscout_env(schain_name):
     base_port = find_sequential_free_ports(5)
     config_host_path = generate_config(schain_name)
     blockscout_data_dir = f'{BLOCKSCOUT_DATA_DIR}/{schain_name}'
+    network = 'testnet' if IS_TESTNET else 'mainnet'
     chains_metadata_url = \
-        'https://raw.githubusercontent.com/skalenetwork/skale-network/master/metadata/mainnet/chains.json' # noqa
+        f'https://raw.githubusercontent.com/skalenetwork/skale-network/master/metadata/{network}/chains.json' # noqa
     schain_app_name = requests.get(chains_metadata_url).json()[schain_name]['alias']
     ports_env = {
         'PROXY_PORT': str(base_port),
@@ -80,6 +81,7 @@ def generate_blockscout_env(schain_name):
         'CHAIN_ID': str(get_chain_id(schain_name)),
         'ENDPOINT': get_schain_endpoint(schain_name),
         'WS_ENDPOINT': get_schain_endpoint(schain_name, ws=True),
+        'NEXT_PUBLIC_IS_TESTNET': IS_TESTNET
     }
     if WALLET_CONNECT_PROJECT_ID:
         schain_env.update({

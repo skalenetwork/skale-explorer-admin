@@ -39,7 +39,7 @@ SCHAIN_NAMES = os.environ.get('SCHAIN_NAMES')
 FROM_FIRST_BLOCK = True if os.environ.get('FROM_FIRST_BLOCK') else False
 SSL_ENABLED = os.environ.get('SSL_ENABLED')
 HOST_DOMAIN = os.environ.get('INTERNAL_DOMAIN_NAME')
-IS_TESTNET = os.environ.get('IS_TESTNET')
+IS_TESTNET = os.environ.get('IS_TESTNET', False)
 WALLET_CONNECT_PROJECT_ID = os.environ.get('WALLET_CONNECT_PROJECT_ID')
 BLOCKSCOUT_TAG = os.environ.get('BLOCKSCOUT_TAG')
 
