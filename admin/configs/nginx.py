@@ -1,9 +1,9 @@
+import fnmatch
 import os
 from admin import (EXPLORERS_NGINX_CONFIG_PATH, SSL_CRT_PATH, SSL_KEY_PATH,
-                   FLASK_HOST_PORT, STATS_NGINX_CONFIG_PATH)
+                   ENVS_DIR_PATH, SSL_ENABLED)
 import crossplane
-
-from admin.configs.meta import get_explorers_meta
+from admin.utils.helper import read_env_file
 
 
 def generate_schain_nginx_config(schain_name, explorer_endpoint, ssl=False):
@@ -102,83 +102,21 @@ def generate_base_nginx_config(schain_name, explorer_endpoint):
 
 
 def regenerate_nginx_config():
-    explorers = get_explorers_meta()
     nginx_cfg = []
-    for schain_name in explorers:
-        if explorers[schain_name].get('explorer_origin'):
-            explorer_endpoint = explorers[schain_name]['explorer_origin']
+    for file in os.listdir(ENVS_DIR_PATH):
+        if not fnmatch.fnmatch(file, '*.env'):
+            continue
+        schain_env = read_env_file(os.path.join(ENVS_DIR_PATH, file))
+        schain_name = schain_env['SCHAIN_NAME']
+        if SSL_ENABLED:
+            proxy_endpoint = f'https://{schain_env["HOST"]}:{schain_env["PROXY_PORT"]}'
         else:
-            explorer_endpoint = f'http://127.0.0.1:{explorers[schain_name]["port"]}'
+            proxy_endpoint = f'http://{schain_env["HOST"]}:{schain_env["PROXY_PORT"]}'
         if os.path.isfile(SSL_CRT_PATH) and os.path.isfile(SSL_KEY_PATH):
-            schain_config = generate_schain_nginx_config(schain_name, explorer_endpoint, ssl=True)
+            schain_config = generate_schain_nginx_config(schain_name, proxy_endpoint, ssl=True)
         else:
-            schain_config = generate_schain_nginx_config(schain_name, explorer_endpoint)
+            schain_config = generate_schain_nginx_config(schain_name, proxy_endpoint)
         nginx_cfg.append(schain_config)
     formatted_config = crossplane.build(nginx_cfg)
     with open(EXPLORERS_NGINX_CONFIG_PATH, 'w') as f:
-        f.write(formatted_config)
-
-
-def generate_base_stats_nginx_config():
-    return {
-        "directive": "server",
-        "args": [],
-        "block": [
-            {
-                "directive": "listen",
-                "args": [
-                    '80'
-                ]
-            },
-            {
-                "directive": "server_name",
-                "args": [
-                    "stats.*"
-                ]
-            },
-            {
-                "directive": "location",
-                "args": [
-                    "/"
-                ],
-                "block": [
-                    {
-                        "directive": "proxy_pass",
-                        "args": [
-                            f'http://127.0.0.1:{FLASK_HOST_PORT}/stats/'
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
-
-
-def generate_stats_nginx_config():
-    config = generate_base_stats_nginx_config()
-    if os.path.isfile(SSL_CRT_PATH) and os.path.isfile(SSL_KEY_PATH):
-        ssl_block = [
-                {
-                    "directive": "listen",
-                    "args": [
-                        '443',
-                        'ssl'
-                    ]
-                },
-                {
-                    "directive": "ssl_certificate",
-                    "args": [
-                        '/data/server.crt'
-                    ]
-                },
-                {
-                    "directive": "ssl_certificate_key",
-                    "args": [
-                        '/data/server.key'
-                    ]
-                }
-        ]
-        config['block'] = ssl_block + config['block']
-    formatted_config = crossplane.build([config])
-    with open(STATS_NGINX_CONFIG_PATH, 'w') as f:
         f.write(formatted_config)
