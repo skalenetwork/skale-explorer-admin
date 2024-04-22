@@ -10,13 +10,14 @@ from admin import (DOCKER_COMPOSE_CONFIG_PATH, DOCKER_COMPOSE_BIN_PATH,
                    BLOCKSCOUT_ASSETS_DIR, SSL_ENABLED,
                    HOST_DOMAIN, BLOCKSCOUT_PROXY_SSL_CONFIG_DIR, HOST_SSL_DIR_PATH,
                    WALLET_CONNECT_PROJECT_ID, BLOCKSCOUT_TAG)
+from admin.configs.meta import get_explorer_endpoint
 from admin.configs.nginx import regenerate_nginx_config
 from admin.configs.schains import generate_config
 from admin.core.containers import (restart_nginx,
                                    is_explorer_running)
 from admin.core.endpoints import is_dkg_passed, get_schain_endpoint, get_chain_id
 from admin.core.verify import verify
-from admin.utils.helper import find_sequential_free_ports, write_json_into_env, read_env_file
+from admin.utils.helper import find_sequential_free_ports, write_json_into_env
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,9 @@ def run_explorer_for_schain(schain_name, update=False):
     subprocess.run(command, env={**os.environ})
     regenerate_nginx_config()
     restart_nginx()
-    logger.info(f'sChain explorer is running on {schain_name}. subdomain')
+    internal_endpoint = get_explorer_endpoint(schain_name)
+    logger.info(f'{schain_name} explorer is running on {internal_endpoint} endpoint internally')
+    logger.info(f'{schain_name} explorer is running on {schain_name}. subdomain')
 
 
 def stop_explorer_for_schain(schain_name):
@@ -55,7 +58,7 @@ def stop_explorer_for_schain(schain_name):
         'down',
     ]
     subprocess.run(command, env={**os.environ})
-    logger.info(f'sChain explorer is stopped')
+    logger.info('sChain explorer is stopped')
 
 
 def generate_blockscout_env(schain_name):
@@ -63,7 +66,7 @@ def generate_blockscout_env(schain_name):
     config_host_path = generate_config(schain_name)
     blockscout_data_dir = f'{BLOCKSCOUT_DATA_DIR}/{schain_name}'
     chains_metadata_url = \
-        'https://raw.githubusercontent.com/skalenetwork/skale-network/master/metadata/mainnet/chains.json'
+        'https://raw.githubusercontent.com/skalenetwork/skale-network/master/metadata/mainnet/chains.json' # noqa
     schain_app_name = requests.get(chains_metadata_url).json()[schain_name]['alias']
     ports_env = {
         'PROXY_PORT': str(base_port),

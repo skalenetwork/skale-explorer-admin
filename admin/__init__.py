@@ -20,10 +20,10 @@ HOST_DIR_PATH = os.environ.get('HOST_DIR_PATH')
 HOST_SCHAIN_CONFIG_DIR_PATH = os.path.join(HOST_DIR_PATH, 'data', 'configs')
 HOST_SSL_DIR_PATH = os.path.join(HOST_DIR_PATH, 'data', 'certs')
 BLOCKSCOUT_DATA_DIR = os.path.join(HOST_DIR_PATH, 'data', 'blockscout-data')
-BLOCKSCOUT_PROXY_CONFIG_DIR = os.path.join(HOST_DIR_PATH, 'deps', 'blockscout', 'docker-compose',
-                                           'proxy')
-BLOCKSCOUT_PROXY_SSL_CONFIG_DIR = os.path.join(HOST_DIR_PATH, 'deps', 'blockscout', 'docker-compose',
-                                               'proxy-ssl')
+BLOCKSCOUT_PROXY_CONFIG_DIR = os.path.join(HOST_DIR_PATH, 'deps', 'blockscout',
+                                           'docker-compose', 'proxy')
+BLOCKSCOUT_PROXY_SSL_CONFIG_DIR = os.path.join(HOST_DIR_PATH, 'deps', 'blockscout',
+                                               'docker-compose', 'proxy-ssl')
 BLOCKSCOUT_ASSETS_DIR = os.path.join(HOST_DIR_PATH, 'deps', 'blockscout', 'docker-compose',
                                      'assets')
 
