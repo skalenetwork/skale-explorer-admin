@@ -35,7 +35,7 @@ Agent will run contract verification
 
 Agent will stop explorers, all data from explorers will be saved
 ```
-./run.sh --verify
+./run.sh --down
 ```
 
 ### Arguments
