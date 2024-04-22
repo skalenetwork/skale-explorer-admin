@@ -8,7 +8,8 @@ import requests
 from admin import (DOCKER_COMPOSE_CONFIG_PATH, DOCKER_COMPOSE_BIN_PATH,
                    BLOCKSCOUT_DATA_DIR, ENVS_DIR_PATH, BLOCKSCOUT_PROXY_CONFIG_DIR,
                    BLOCKSCOUT_ASSETS_DIR, SSL_ENABLED,
-                   HOST_DOMAIN, BLOCKSCOUT_PROXY_SSL_CONFIG_DIR, HOST_SSL_DIR_PATH, WALLET_CONNECT_PROJECT_ID)
+                   HOST_DOMAIN, BLOCKSCOUT_PROXY_SSL_CONFIG_DIR, HOST_SSL_DIR_PATH,
+                   WALLET_CONNECT_PROJECT_ID, BLOCKSCOUT_TAG)
 from admin.configs.nginx import regenerate_nginx_config
 from admin.configs.schains import generate_config
 from admin.core.containers import (restart_nginx,
@@ -34,8 +35,7 @@ def run_explorer_for_schain(schain_name, update=False):
         '--env-file',
         env_file_path,
         'up',
-        '-d',
-        '--build'
+        '-d'
     ]
     subprocess.run(command, env={**os.environ})
     regenerate_nginx_config()
@@ -106,6 +106,7 @@ def generate_blockscout_env(schain_name):
         }
     return {
         'COMPOSE_PROJECT_NAME': schain_name,
+        'DOCKER_TAG': BLOCKSCOUT_TAG,
         **ports_env,
         **schain_env,
         **volumes_env,

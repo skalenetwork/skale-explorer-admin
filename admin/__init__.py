@@ -41,6 +41,7 @@ SSL_ENABLED = os.environ.get('SSL_ENABLED')
 HOST_DOMAIN = os.environ.get('INTERNAL_DOMAIN_NAME')
 IS_TESTNET = os.environ.get('IS_TESTNET')
 WALLET_CONNECT_PROJECT_ID = os.environ.get('WALLET_CONNECT_PROJECT_ID')
+BLOCKSCOUT_TAG = os.environ.get('BLOCKSCOUT_TAG')
 
 SSL_DIR_PATH = os.path.join(SERVER_DATA_DIR, 'certs')
 SSL_CRT_PATH = os.path.join(SSL_DIR_PATH, 'server.crt')
