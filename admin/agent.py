@@ -4,7 +4,7 @@ import os
 
 from admin import ABI_FILEPATH
 from admin.core.endpoints import get_all_names
-from admin.core.explorers import check_explorer_for_schain, run_explorer_for_schain
+from admin.core.explorers import check_explorer_for_schain, run_explorer_for_schain, stop_explorer_for_schain
 from admin.core.verify import verify
 from admin.utils.logger import init_logger
 
@@ -53,7 +53,7 @@ def main():
         update_explorers()
     elif args.down:
         logger.info("Stopping explorers...")
-        update_explorers()
+        stop_explorers()
     else:
         logger.info("Run explorers process is running...")
         run_explorers()
