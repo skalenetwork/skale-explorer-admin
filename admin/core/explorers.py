@@ -65,7 +65,7 @@ def generate_blockscout_env(schain_name):
     base_port = find_sequential_free_ports(5)
     config_host_path = generate_config(schain_name)
     blockscout_data_dir = f'{BLOCKSCOUT_DATA_DIR}/{schain_name}'
-    network = 'testnet' if IS_TESTNET else 'mainnet'
+    network = 'testnet' if IS_TESTNET is True else 'mainnet'
     chains_metadata_url = \
         f'https://raw.githubusercontent.com/skalenetwork/skale-network/master/metadata/{network}/chains.json' # noqa
     schain_app_name = requests.get(chains_metadata_url).json()[schain_name]['alias']
@@ -81,7 +81,7 @@ def generate_blockscout_env(schain_name):
         'CHAIN_ID': str(get_chain_id(schain_name)),
         'ENDPOINT': get_schain_endpoint(schain_name),
         'WS_ENDPOINT': get_schain_endpoint(schain_name, ws=True),
-        'NEXT_PUBLIC_IS_TESTNET': IS_TESTNET
+        'NEXT_PUBLIC_IS_TESTNET': str(IS_TESTNET)
     }
     if WALLET_CONNECT_PROJECT_ID:
         schain_env.update({
