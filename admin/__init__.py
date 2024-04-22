@@ -37,9 +37,9 @@ ETH_API_KEY = os.environ.get('ETH_API_KEY')
 PROXY_DOMAIN_NAME = os.environ.get('PROXY_DOMAIN')
 SCHAIN_NAMES = os.environ.get('SCHAIN_NAMES')
 FROM_FIRST_BLOCK = True if os.environ.get('FROM_FIRST_BLOCK') else False
-SSL_ENABLED = os.environ.get('SSL_ENABLED')
+SSL_ENABLED = True if os.environ.get('SSL_ENABLED') == 'true' else False
 HOST_DOMAIN = os.environ.get('INTERNAL_DOMAIN_NAME')
-IS_TESTNET = os.environ.get('IS_TESTNET', False)
+IS_TESTNET = True if os.environ.get('IS_TESTNET') == 'true' else False
 WALLET_CONNECT_PROJECT_ID = os.environ.get('WALLET_CONNECT_PROJECT_ID')
 BLOCKSCOUT_TAG = os.environ.get('BLOCKSCOUT_TAG')
 
