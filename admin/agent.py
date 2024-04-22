@@ -29,6 +29,12 @@ def update_explorers():
         run_explorer_for_schain(schain_name, update=True)
 
 
+def stop_explorers():
+    schains = get_all_names()
+    for schain_name in schains:
+        stop_explorer_for_schain(schain_name)
+
+
 def main():
     assert os.path.isfile(ABI_FILEPATH), "ABI not found"
 
@@ -36,6 +42,7 @@ def main():
 
     parser.add_argument('--verify', action='store_true', help='Run the verification process')
     parser.add_argument('--update', action='store_true', help='Run the update process')
+    parser.add_argument('--down', action='store_true', help='Stop explorers')
 
     args = parser.parse_args()
     if args.verify:
@@ -43,6 +50,9 @@ def main():
         verify_contracts()
     elif args.update:
         logger.info("Update process is running...")
+        update_explorers()
+    elif args.down:
+        logger.info("Stopping explorers...")
         update_explorers()
     else:
         logger.info("Run explorers process is running...")

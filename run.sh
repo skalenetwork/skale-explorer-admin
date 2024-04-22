@@ -11,6 +11,9 @@ case "$1" in
   --update)
     OPTION="--update"
     ;;
+  --down)
+    OPTION="--down"
+    ;;
   *)
     OPTION=""
     ;;

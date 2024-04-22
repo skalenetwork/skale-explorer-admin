@@ -43,6 +43,21 @@ def run_explorer_for_schain(schain_name, update=False):
     logger.info(f'sChain explorer is running on {schain_name}. subdomain')
 
 
+def stop_explorer_for_schain(schain_name):
+    env_file_path = os.path.join(ENVS_DIR_PATH, f'{schain_name}.env')
+    command = [
+        DOCKER_COMPOSE_BIN_PATH,
+        'compose',
+        '-f',
+        DOCKER_COMPOSE_CONFIG_PATH,
+        '--env-file',
+        env_file_path,
+        'down',
+    ]
+    subprocess.run(command, env={**os.environ})
+    logger.info(f'sChain explorer is stopped')
+
+
 def generate_blockscout_env(schain_name):
     base_port = find_sequential_free_ports(5)
     config_host_path = generate_config(schain_name)
