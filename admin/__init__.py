@@ -38,7 +38,7 @@ PROXY_DOMAIN_NAME = os.environ.get('PROXY_DOMAIN')
 SCHAIN_NAMES = os.environ.get('SCHAIN_NAMES')
 FROM_FIRST_BLOCK = True if os.environ.get('FROM_FIRST_BLOCK') else False
 SSL_ENABLED = os.environ.get('SSL_ENABLED')
-HOST_DOMAIN = os.environ.get('HOST_DOMAIN')
+HOST_DOMAIN = os.environ.get('INTERNAL_DOMAIN_NAME')
 IS_TESTNET = os.environ.get('IS_TESTNET')
 WALLET_CONNECT_PROJECT_ID = os.environ.get('WALLET_CONNECT_PROJECT_ID')
 
