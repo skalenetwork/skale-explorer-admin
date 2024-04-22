@@ -1,73 +1,28 @@
 import logging
+import os
 
-from admin import EXPLORERS_META_DATA_PATH
-from admin.utils.helper import read_json, write_json
+from admin import EXPLORERS_META_DATA_PATH, ENVS_DIR_PATH, SSL_ENABLED
+from admin.utils.helper import read_json, read_env_file
 
 logger = logging.getLogger(__name__)
 
 
-def create_meta_file():
-    empty_data = {
-        'explorers': {}
-    }
-    write_json(EXPLORERS_META_DATA_PATH, empty_data)
-
-
-def is_schain_upgraded(schain_name):
-    schain_meta = get_schain_meta(schain_name)
-    if not schain_meta or schain_meta.get('updated'):
-        return True
-
-
-def verified_contracts(schain_name):
-    return get_schain_meta(schain_name).get('contracts_verified') is True
-
-
-def set_schain_upgraded(schain_name):
-    meta = read_json(EXPLORERS_META_DATA_PATH)
-    schain_meta = meta['explorers'][schain_name]
-    schain_meta['updated'] = True
-    write_json(EXPLORERS_META_DATA_PATH, meta)
-
-
-def update_meta_data(schain_name, port, db_port, scv_port,
-                     endpoint, ws_endpoint, first_block):
-    logger.info(f'Updating meta data for {schain_name}')
-    meta_data = read_json(EXPLORERS_META_DATA_PATH)
-    explorers = meta_data['explorers']
-    schain_meta = explorers.get(schain_name, {})
-    schain_meta.update({
-        'port': port,
-        'db_port': db_port,
-        'scv_port': scv_port,
-        'endpoint': endpoint,
-        'ws_endpoint': ws_endpoint,
-        'first_block': first_block
-    })
-    explorers.update({
-        schain_name: schain_meta
-    })
-    write_json(EXPLORERS_META_DATA_PATH, meta_data)
-
-
 def get_schain_endpoint(schain_name):
-    return get_schain_meta(schain_name)['endpoint']
+    return get_schain_meta(schain_name)['ENDPOINT']
 
 
 def get_explorer_endpoint(schain_name):
-    explorer_port = get_schain_meta(schain_name)['port']
-    return f'http://127.0.0.1:{explorer_port}'
+    schain_env = get_schain_meta(schain_name)
+    if SSL_ENABLED:
+        proxy_endpoint = f'https://{schain_env["HOST"]}:{schain_env["PROXY_PORT"]}'
+    else:
+        proxy_endpoint = f'http://{schain_env["HOST"]}:{schain_env["PROXY_PORT"]}'
+    return proxy_endpoint
 
 
 def get_schain_meta(schain_name):
-    data = get_explorers_meta()
-    return data.get(schain_name)
-
-
-def set_chain_verified(schain_name):
-    data = read_json(EXPLORERS_META_DATA_PATH)
-    data['explorers'][schain_name]['contracts_verified'] = True
-    write_json(EXPLORERS_META_DATA_PATH, data)
+    env_file_path = os.path.join(ENVS_DIR_PATH, f'{schain_name}.env')
+    return read_env_file(env_file_path)
 
 
 def get_explorers_meta():
