@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from time import sleep
@@ -21,10 +22,19 @@ from admin.utils.helper import find_sequential_free_ports, write_json_into_env
 logger = logging.getLogger(__name__)
 
 
+def check_explorer_for_schain(schain_name, update=False):
+    if not is_dkg_passed(schain_name):
+        return
+    if not is_explorer_running(schain_name):
+        run_explorer_for_schain(schain_name, update)
+        sleep(60)
+        verify(schain_name)
+
+
 def run_explorer_for_schain(schain_name, update=False):
     env_file_path = os.path.join(ENVS_DIR_PATH, f'{schain_name}.env')
     if not os.path.exists(env_file_path) or update:
-        env_data = generate_blockscout_env(schain_name)
+        env_data = generate_blockscout_envs(schain_name)
         write_json_into_env(env_file_path, env_data)
         logger.info(f'Env for {schain_name} is generated: {env_file_path}')
     run_blockscout_containers(env_file_path)
@@ -41,7 +51,17 @@ def stop_explorer_for_schain(schain_name):
     logger.info('sChain explorer is stopped')
 
 
-def generate_blockscout_env(schain_name):
+def restart_explorer_for_schain(schain_name):
+    env_file_path = os.path.join(ENVS_DIR_PATH, f'{schain_name}.env')
+    if not os.path.exists(env_file_path):
+        env_data = generate_blockscout_envs(schain_name)
+        write_json_into_env(env_file_path, env_data)
+        logger.info(f'Env for {schain_name} is generated: {env_file_path}')
+    run_blockscout_containers(env_file_path)
+    logger.info('sChain explorer is restarted')
+
+
+def generate_blockscout_envs(schain_name):
     port_envs = generate_port_envs()
     network_envs = generate_network_envs()
     schain_envs = generate_schain_envs(schain_name)
@@ -91,6 +111,7 @@ def generate_schain_envs(schain_name):
         'WS_ENDPOINT': get_schain_endpoint(schain_name, ws=True),
         'SCHAIN_DATA_DIR': schain_data_dir,
         'CONFIG_PATH': config_host_path,
+        'NEXT_PUBLIC_IS_TESTNET': json.dumps(IS_TESTNET)
     }
     return schain_envs
 
@@ -113,12 +134,3 @@ def generate_network_envs():
             'HOST': str(public_ip),
             'BLOCKSCOUT_PROXY_CONFIG_DIR': BLOCKSCOUT_PROXY_CONFIG_DIR,
         }
-
-
-def check_explorer_for_schain(schain_name, update=False):
-    if not is_dkg_passed(schain_name):
-        return
-    if not is_explorer_running(schain_name):
-        run_explorer_for_schain(schain_name, update)
-        sleep(60)
-        verify(schain_name)
