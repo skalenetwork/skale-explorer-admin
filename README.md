@@ -38,6 +38,13 @@ Agent will stop explorers, all data from explorers will be saved
 ./run.sh --down
 ```
 
+#### Restart mode
+
+Agent will restart explorer
+```
+./run.sh --restart
+```
+
 ### Arguments
 
 To run explorer-admin, `.env` file shoudl be created in the project root directory. Use `template.env` as example. 
