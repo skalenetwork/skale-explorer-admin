@@ -98,8 +98,9 @@ def generate_common_envs(schain_name):
 
 
 def generate_schain_envs(schain_name):
+    network = 'testnet' if IS_TESTNET is True else 'mainnet'
     chains_metadata_url = \
-        'https://raw.githubusercontent.com/skalenetwork/skale-network/master/metadata/mainnet/chains.json' # noqa
+        f'https://raw.githubusercontent.com/skalenetwork/skale-network/master/metadata/{network}/chains.json' # noqa
     schain_app_name = requests.get(chains_metadata_url).json()[schain_name]['alias']
     config_host_path = generate_config(schain_name)
     schain_data_dir = f'{BLOCKSCOUT_DATA_DIR}/{schain_name}'
