@@ -1,90 +1,137 @@
+import json
 import logging
 import os
-import subprocess
+from time import sleep
 
-from admin import (DOCKER_COMPOSE_CONFIG_PATH, DOCKER_COMPOSE_BIN_PATH,
-                   COMPOSE_HTTP_TIMEOUT, BLOCKSCOUT_DATA_DIR)
-from admin.configs.meta import (update_meta_data, get_schain_meta, get_explorers_meta,
-                                set_schain_upgraded, is_schain_upgraded, verified_contracts)
+import requests
+
+from admin import (BLOCKSCOUT_DATA_DIR, ENVS_DIR_PATH, BLOCKSCOUT_PROXY_CONFIG_DIR,
+                   BLOCKSCOUT_ASSETS_DIR, SSL_ENABLED,
+                   HOST_DOMAIN, BLOCKSCOUT_PROXY_SSL_CONFIG_DIR, HOST_SSL_DIR_PATH,
+                   WALLET_CONNECT_PROJECT_ID, BLOCKSCOUT_TAG, IS_TESTNET)
+from admin.configs.meta import get_explorer_endpoint
 from admin.configs.nginx import regenerate_nginx_config
 from admin.configs.schains import generate_config
-from admin.core.containers import (get_free_port, restart_nginx,
-                                   is_explorer_running, remove_explorer)
-from admin.core.endpoints import is_dkg_passed, get_schain_endpoint, get_first_block, get_chain_id
+from admin.core.containers import (restart_nginx,
+                                   is_explorer_running, run_blockscout_containers,
+                                   stop_blockscout_containers)
+from admin.core.endpoints import is_dkg_passed, get_schain_endpoint, get_chain_id
 from admin.core.verify import verify
-from admin.migrations.revert_reasons import upgrade
+from admin.utils.helper import find_sequential_free_ports, write_json_into_env
 
 logger = logging.getLogger(__name__)
 
 
-def run_explorer(schain_name, chain_id, endpoint, ws_endpoint):
-    schain_meta = get_schain_meta(schain_name)
-    explorer_port = schain_meta['port'] if schain_meta else get_free_port()
-    db_port = schain_meta['db_port'] if schain_meta else get_free_port()
-    scv_port = schain_meta['scv_port'] if schain_meta else get_free_port()
-    first_block = schain_meta['first_block'] if schain_meta else get_first_block(schain_name)
-    config_host_path = generate_config(schain_name)
-    blockscout_data_dir = f'{BLOCKSCOUT_DATA_DIR}/{schain_name}'
-    env = {
-        'SCHAIN_NAME': schain_name,
-        'CHAIN_ID': str(chain_id),
-        'PORT': str(explorer_port),
-        'DB_PORT': str(db_port),
-        'SC_VERIFIER_PORT': str(scv_port),
-        'ENDPOINT': endpoint,
-        'WS_ENDPOINT': ws_endpoint,
-        'CONFIG_PATH': config_host_path,
-        'COMPOSE_PROJECT_NAME': schain_name,
-        'COMPOSE_HTTP_TIMEOUT': str(COMPOSE_HTTP_TIMEOUT),
-        'FIRST_BLOCK': str(first_block),
-        'SCHAIN_DATA_DIR': blockscout_data_dir
-    }
-    logger.info(f'Running explorer with {env}')
-    command = [
-        DOCKER_COMPOSE_BIN_PATH,
-        '-f',
-        DOCKER_COMPOSE_CONFIG_PATH,
-        'up',
-        '-d'
-    ]
-    subprocess.run(command, env={**env, **os.environ})
-    update_meta_data(schain_name, explorer_port, db_port, scv_port,
-                     endpoint, ws_endpoint, first_block)
+def check_explorer_for_schain(schain_name, update=False):
+    if not is_dkg_passed(schain_name):
+        return
+    if not is_explorer_running(schain_name):
+        run_explorer_for_schain(schain_name, update)
+        sleep(60)
+        verify(schain_name)
+
+
+def run_explorer_for_schain(schain_name, update=False):
+    env_file_path = os.path.join(ENVS_DIR_PATH, f'{schain_name}.env')
+    if not os.path.exists(env_file_path) or update:
+        env_data = generate_blockscout_envs(schain_name)
+        write_json_into_env(env_file_path, env_data)
+        logger.info(f'Env for {schain_name} is generated: {env_file_path}')
+    run_blockscout_containers(env_file_path)
     regenerate_nginx_config()
     restart_nginx()
-    logger.info(f'sChain explorer is running on {schain_name}. subdomain')
+    internal_endpoint = get_explorer_endpoint(schain_name)
+    logger.info(f'{schain_name} explorer is running on {internal_endpoint} endpoint internally')
+    logger.info(f'{schain_name} explorer is running on {schain_name}. subdomain')
 
 
-def run_explorer_for_schain(schain_name):
-    schain_meta = get_schain_meta(schain_name)
-    if schain_meta and schain_meta.get('sync') is True:
-        endpoint = schain_meta['endpoint']
-        ws_endpoint = schain_meta['ws_endpoint']
+def stop_explorer_for_schain(schain_name):
+    env_file_path = os.path.join(ENVS_DIR_PATH, f'{schain_name}.env')
+    stop_blockscout_containers(env_file_path)
+    logger.info('sChain explorer is stopped')
+
+
+def restart_explorer_for_schain(schain_name):
+    env_file_path = os.path.join(ENVS_DIR_PATH, f'{schain_name}.env')
+    if not os.path.exists(env_file_path):
+        env_data = generate_blockscout_envs(schain_name)
+        write_json_into_env(env_file_path, env_data)
+        logger.info(f'Env for {schain_name} is generated: {env_file_path}')
+    run_blockscout_containers(env_file_path)
+    logger.info('sChain explorer is restarted')
+
+
+def generate_blockscout_envs(schain_name):
+    port_envs = generate_port_envs()
+    network_envs = generate_network_envs()
+    schain_envs = generate_schain_envs(schain_name)
+    common_envs = generate_common_envs(schain_name)
+    return {
+        **port_envs,
+        **schain_envs,
+        **common_envs,
+        **network_envs
+    }
+
+
+def generate_port_envs():
+    base_port = find_sequential_free_ports(5)
+    return {
+        'PROXY_PORT': str(base_port),
+        'DB_PORT': str(base_port + 1),
+        'STATS_PORT': str(base_port + 2),
+        'STATS_DB_PORT': str(base_port + 3),
+    }
+
+
+def generate_common_envs(schain_name):
+    common_envs = {
+        'COMPOSE_PROJECT_NAME': schain_name,
+        'DOCKER_TAG': BLOCKSCOUT_TAG,
+        'BLOCKSCOUT_ASSETS_DIR': BLOCKSCOUT_ASSETS_DIR,
+    }
+    if WALLET_CONNECT_PROJECT_ID:
+        common_envs.update({
+            'NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID': WALLET_CONNECT_PROJECT_ID
+        })
+    return common_envs
+
+
+def generate_schain_envs(schain_name):
+    network = 'testnet' if IS_TESTNET is True else 'mainnet'
+    chains_metadata_url = \
+        f'https://raw.githubusercontent.com/skalenetwork/skale-network/master/metadata/{network}/chains.json' # noqa
+    schain_app_name = requests.get(chains_metadata_url).json()[schain_name]['alias']
+    config_host_path = generate_config(schain_name)
+    schain_data_dir = f'{BLOCKSCOUT_DATA_DIR}/{schain_name}'
+    schain_envs = {
+        'SCHAIN_NAME': schain_name,
+        'SCHAIN_APP_NAME': schain_app_name,
+        'CHAIN_ID': str(get_chain_id(schain_name)),
+        'ENDPOINT': get_schain_endpoint(schain_name),
+        'WS_ENDPOINT': get_schain_endpoint(schain_name, ws=True),
+        'SCHAIN_DATA_DIR': schain_data_dir,
+        'CONFIG_PATH': config_host_path,
+        'NEXT_PUBLIC_IS_TESTNET': json.dumps(IS_TESTNET)
+    }
+    return schain_envs
+
+
+def generate_network_envs():
+    if SSL_ENABLED:
+        return {
+            'HOST': HOST_DOMAIN,
+            'PROXY_BASE_PORT': 443,
+            'NEXT_PUBLIC_API_WEBSOCKET_PROTOCOL': 'wss',
+            'NEXT_PUBLIC_API_PROTOCOL': 'https',
+            'STATS_PROTOCOL': 'https',
+            'NEXT_PUBLIC_APP_PROTOCOL': 'https',
+            'BLOCKSCOUT_PROXY_CERTS_PATH': HOST_SSL_DIR_PATH,
+            'BLOCKSCOUT_PROXY_CONFIG_DIR': BLOCKSCOUT_PROXY_SSL_CONFIG_DIR,
+        }
     else:
-        endpoint = get_schain_endpoint(schain_name)
-        ws_endpoint = get_schain_endpoint(schain_name, ws=True)
-    chain_id = get_chain_id(schain_name)
-    if endpoint and ws_endpoint:
-        run_explorer(schain_name, chain_id, endpoint, ws_endpoint)
-    else:
-        logger.warning(f"Couldn't create blockexplorer instance for {schain_name}")
-
-
-def check_explorer_for_schain(schain_name):
-    explorers = get_explorers_meta()
-    if schain_name not in explorers and not is_dkg_passed(schain_name):
-        return
-    if schain_name not in explorers:
-        run_explorer_for_schain(schain_name)
-        set_schain_upgraded(schain_name)
-    if not is_explorer_running(schain_name):
-        if not is_explorer_running(schain_name):
-            logger.warning(f'Blockscout is not working for {schain_name}. Recreating...')
-        else:
-            logger.warning(f'Blockscout version is outdated for {schain_name}. Recreating...')
-        remove_explorer(schain_name)
-        if not is_schain_upgraded(schain_name):
-            upgrade(schain_name)
-        run_explorer_for_schain(schain_name)
-    if not verified_contracts(schain_name) and is_explorer_running(schain_name):
-        verify(schain_name)
+        public_ip = requests.get('https://api.ipify.org').content.decode('utf8')
+        return {
+            'HOST': str(public_ip),
+            'BLOCKSCOUT_PROXY_CONFIG_DIR': BLOCKSCOUT_PROXY_CONFIG_DIR,
+        }

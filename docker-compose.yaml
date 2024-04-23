@@ -3,24 +3,22 @@ services:
   explorer-admin:
     container_name: explorer_admin
     image: "explorer-admin:${TAG:-latest}"
-    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile
     network_mode: host
+    env_file:
+      - .env
     environment:
-      ETH_ENDPOINT: ${ENDPOINT}
-      PROXY_DOMAIN: ${SCHAIN_PROXY_DOMAIN}
-      FIRST_SCHAIN_ID: ${FIRST_SCHAIN_ID}
-      LAST_SCHAIN_ID: ${LAST_SCHAIN_ID}
+      OPTION: ${OPTION}
       HOST_DIR_PATH: ${HOST_DIR_PATH}
-      ETH_API_KEY: ${ETH_API_KEY}
-      SCHAIN_NAMES: ${SCHAIN_NAMES}
-      FROM_FIRST_BLOCK: ${FROM_FIRST_BLOCK}
+      SSL_ENABLED: ${SSL_ENABLED:-true}
+      IS_TESTNET: ${IS_TESTNET:-false}
+      BLOCKSCOUT_TAG: ${BLOCKSCOUT_TAG:-2.0.0}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/skale-explorer/data
-    command: "python3 admin/agent.py"
+    command: "python3 admin/agent.py ${OPTION}"
   nginx:
     image: nginx:1.19.6
     container_name: nginx
