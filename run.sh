@@ -14,6 +14,9 @@ case "$1" in
   --down)
     OPTION="--down"
     ;;
+  --restart)
+    OPTION="--restart"
+    ;;
   *)
     OPTION=""
     ;;

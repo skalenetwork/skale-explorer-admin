@@ -5,7 +5,7 @@ import os
 from admin import ABI_FILEPATH
 from admin.core.endpoints import get_all_names
 from admin.core.explorers import (check_explorer_for_schain, run_explorer_for_schain,
-                                  stop_explorer_for_schain)
+                                  stop_explorer_for_schain, restart_explorer_for_schain)
 from admin.core.verify import verify
 from admin.utils.logger import init_logger
 
@@ -36,6 +36,12 @@ def stop_explorers():
         stop_explorer_for_schain(schain_name)
 
 
+def restart_explorers():
+    schains = get_all_names()
+    for schain_name in schains:
+        restart_explorer_for_schain(schain_name)
+
+
 def main():
     assert os.path.isfile(ABI_FILEPATH), "ABI not found"
 
@@ -44,6 +50,7 @@ def main():
     parser.add_argument('--verify', action='store_true', help='Run the verification process')
     parser.add_argument('--update', action='store_true', help='Run the update process')
     parser.add_argument('--down', action='store_true', help='Stop explorers')
+    parser.add_argument('--restart', action='store_true', help='Restart explorers if needed')
 
     args = parser.parse_args()
     if args.verify:
@@ -55,6 +62,9 @@ def main():
     elif args.down:
         logger.info("Stopping explorers...")
         stop_explorers()
+    elif args.restart:
+        logger.info("Restarting explorers...")
+        restart_explorers()
     else:
         logger.info("Run explorers process is running...")
         run_explorers()
