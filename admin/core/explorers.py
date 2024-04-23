@@ -7,7 +7,7 @@ import requests
 from admin import (BLOCKSCOUT_DATA_DIR, ENVS_DIR_PATH, BLOCKSCOUT_PROXY_CONFIG_DIR,
                    BLOCKSCOUT_ASSETS_DIR, SSL_ENABLED,
                    HOST_DOMAIN, BLOCKSCOUT_PROXY_SSL_CONFIG_DIR, HOST_SSL_DIR_PATH,
-                   WALLET_CONNECT_PROJECT_ID, BLOCKSCOUT_TAG)
+                   WALLET_CONNECT_PROJECT_ID, BLOCKSCOUT_TAG, IS_TESTNET)
 from admin.configs.meta import get_explorer_endpoint
 from admin.configs.nginx import regenerate_nginx_config
 from admin.configs.schains import generate_config
