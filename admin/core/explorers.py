@@ -101,7 +101,7 @@ def generate_schain_envs(schain_name):
     network = 'testnet' if IS_TESTNET is True else 'mainnet'
     chains_metadata_url = \
         f'https://raw.githubusercontent.com/skalenetwork/skale-network/master/metadata/{network}/chains.json' # noqa
-     try:
+    try:
         schain_app_name = requests.get(chains_metadata_url).json()[schain_name]['alias']
     except KeyError:
         schain_app_name = schain_name
