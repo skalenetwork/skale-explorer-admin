@@ -75,4 +75,3 @@ def restart_blockscout_containers(env_file_path):
         'restart'
     ]
     subprocess.run(command, env={**os.environ})
-
