@@ -62,3 +62,17 @@ def stop_blockscout_containers(env_file_path):
         'down'
     ]
     subprocess.run(command, env={**os.environ})
+
+
+def restart_blockscout_containers(env_file_path):
+    command = [
+        DOCKER_COMPOSE_BIN_PATH,
+        'compose',
+        '-f',
+        DOCKER_COMPOSE_CONFIG_PATH,
+        '--env-file',
+        env_file_path,
+        'restart'
+    ]
+    subprocess.run(command, env={**os.environ})
+
