@@ -14,7 +14,7 @@ from admin.configs.nginx import regenerate_nginx_config
 from admin.configs.schains import generate_config
 from admin.core.containers import (restart_nginx,
                                    is_explorer_running, run_blockscout_containers,
-                                   stop_blockscout_containers)
+                                   stop_blockscout_containers, restart_blockscout_containers)
 from admin.core.endpoints import is_dkg_passed, get_schain_endpoint, get_chain_id
 from admin.core.verify import verify
 from admin.utils.helper import find_sequential_free_ports, write_json_into_env
@@ -57,7 +57,7 @@ def restart_explorer_for_schain(schain_name):
         env_data = generate_blockscout_envs(schain_name)
         write_json_into_env(env_file_path, env_data)
         logger.info(f'Env for {schain_name} is generated: {env_file_path}')
-    run_blockscout_containers(env_file_path)
+    restart_blockscout_containers(env_file_path)
     logger.info('sChain explorer is restarted')
 
 
