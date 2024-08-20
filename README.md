@@ -57,3 +57,5 @@ To run explorer-admin, `.env` file shoudl be created in the project root directo
 - WALLET_CONNECT_PROJECT_ID - WalletConnect project ID for blockscout frontend _(optional)_
 - IS_TESTNET - whether network is testnet _(optional)_
 - BLOCKSCOUT_TAG - version of skalenetwork/blockscout container to use _(optional)_
+- DB_PASSWORD - password for postgres database _(optional)_
+- RE_CAPTCHA_SECRET_KEY - private key used on blockscout server side to securely verify that user interactions on your website are performed by humans _(optional)_
