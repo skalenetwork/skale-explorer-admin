@@ -41,7 +41,8 @@ SSL_ENABLED = True if os.environ.get('SSL_ENABLED') == 'true' else False
 HOST_DOMAIN = os.environ.get('INTERNAL_DOMAIN_NAME')
 IS_TESTNET = True if os.environ.get('IS_TESTNET') == 'true' else False
 WALLET_CONNECT_PROJECT_ID = os.environ.get('WALLET_CONNECT_PROJECT_ID')
-BLOCKSCOUT_TAG = os.environ.get('BLOCKSCOUT_TAG')
+BLOCKSCOUT_BACKEND_DOCKER_TAG = os.environ.get('BLOCKSCOUT_BACKEND_DOCKER_TAG')
+BLOCKSCOUT_FRONTEND_DOCKER_TAG = os.environ.get('BLOCKSCOUT_FRONTEND_DOCKER_TAG')
 DB_PASSWORD = os.environ.get('DB_PASSWORD')
 RE_CAPTCHA_SECRET_KEY = os.environ.get('RE_CAPTCHA_SECRET_KEY')
 

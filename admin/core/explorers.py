@@ -8,7 +8,8 @@ import requests
 from admin import (BLOCKSCOUT_DATA_DIR, ENVS_DIR_PATH, BLOCKSCOUT_PROXY_CONFIG_DIR,
                    BLOCKSCOUT_ASSETS_DIR, SSL_ENABLED,
                    HOST_DOMAIN, BLOCKSCOUT_PROXY_SSL_CONFIG_DIR, HOST_SSL_DIR_PATH,
-                   WALLET_CONNECT_PROJECT_ID, BLOCKSCOUT_TAG, IS_TESTNET, DB_PASSWORD,
+                   WALLET_CONNECT_PROJECT_ID, BLOCKSCOUT_BACKEND_DOCKER_TAG,
+                   BLOCKSCOUT_FRONTEND_DOCKER_TAG, IS_TESTNET, DB_PASSWORD,
                    RE_CAPTCHA_SECRET_KEY)
 from admin.configs.meta import get_explorer_endpoint
 from admin.configs.nginx import regenerate_nginx_config
@@ -88,7 +89,8 @@ def generate_port_envs():
 def generate_common_envs(schain_name):
     common_envs = {
         'COMPOSE_PROJECT_NAME': schain_name,
-        'DOCKER_TAG': BLOCKSCOUT_TAG,
+        'BLOCKSCOUT_BACKEND_DOCKER_TAG': BLOCKSCOUT_BACKEND_DOCKER_TAG,
+        'BLOCKSCOUT_FRONTEND_DOCKER_TAG': BLOCKSCOUT_FRONTEND_DOCKER_TAG,
         'BLOCKSCOUT_ASSETS_DIR': BLOCKSCOUT_ASSETS_DIR,
     }
     if WALLET_CONNECT_PROJECT_ID:
