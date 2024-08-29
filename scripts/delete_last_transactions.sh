@@ -2,12 +2,24 @@
 
 set -e
 
-if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <schain_name> <N>"
+CONFIRM="yes"
+while [[ "$1" =~ ^- && ! "$1" == "--" ]]; do case $1 in
+  -y | --yes )
+    CONFIRM="no"
+    ;;
+  *)
+    echo "Usage: $0 [-y | --yes] <schain_name> <N>"
+    exit 1
+    ;;
+esac; shift; done
+
+if [ "$#" -lt 2 ]; then
+    echo "Usage: $0 [-y | --yes] <schain_name> <N>"
     exit 1
 fi
 
-CONTAINER_NAME="$1_db"
+SCHAIN_NAME="$1"
+CONTAINER_NAME="${SCHAIN_NAME}_db"
 N=$2
 
 if ! docker ps --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
@@ -24,11 +36,13 @@ fi
 
 echo "Total number of transactions: $TOTAL_TRANSACTIONS"
 echo "You are about to delete the last $(($TOTAL_TRANSACTIONS - $N)) transactions from the 'transactions' table."
-read -p "Are you sure you want to proceed? Type 'yes' to continue: " CONFIRMATION
 
-if [ "$CONFIRMATION" != "yes" ]; then
-    echo "Operation aborted. No transactions were deleted."
-    exit 0
+if [ "$CONFIRM" == "yes" ]; then
+    read -p "Are you sure you want to proceed? Type 'yes' to continue: " USER_CONFIRMATION
+    if [ "$USER_CONFIRMATION" != "yes" ]; then
+        echo "Operation aborted. No transactions were deleted."
+        exit 0
+    fi
 fi
 
 docker exec "$CONTAINER_NAME" psql -U blockscout -d blockscout -c "
