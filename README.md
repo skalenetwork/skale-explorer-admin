@@ -57,3 +57,7 @@ To run explorer-admin, `.env` file shoudl be created in the project root directo
 - WALLET_CONNECT_PROJECT_ID - WalletConnect project ID for blockscout frontend _(optional)_
 - IS_TESTNET - whether network is testnet _(optional)_
 - BLOCKSCOUT_TAG - version of skalenetwork/blockscout container to use _(optional)_
+
+## Additional Documentation
+
+For detailed instructions on how to use the delete transactions script, please refer to the [Delete Last Transactions Script Documentation](scripts/README.md).
