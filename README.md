@@ -60,3 +60,7 @@ To run explorer-admin, `.env` file shoudl be created in the project root directo
 - BLOCKSCOUT_FRONTEND_DOCKER_TAG - version of skalenetwork/blockscout-frontend container to use _(optional)_
 - DB_PASSWORD - password for postgres database _(optional)_
 - RE_CAPTCHA_SECRET_KEY - private key used on blockscout server side to securely verify that user interactions on your website are performed by humans _(optional)_
+
+## Additional Documentation
+
+For detailed instructions on how to use the delete transactions script, please refer to the [Delete Last Transactions Script Documentation](scripts/README.md).
